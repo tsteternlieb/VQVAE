@@ -169,14 +169,15 @@ class PatchDescriminator(nn.Module):
     def __init__(self,num_layers, input_dim=3, kernel_size = 4, norm=True, _activation = 'ReLU'):
         act_dict = {
             'ReLU':nn.ReLU,
-            'LeakyReLU':  lambda : nn.LeakyReLU(.2)}
+            'LeakyReLU':  lambda : nn.LeakyReLU(.2),
+            'SELU': nn.SELU()}
 
         activation = act_dict[_activation]
         model = []
 
         model.extend(
             [
-                nn.Conv2d(3,16,kernel_size,3,padding=1),
+                nn.Conv2d(input_dim,16,kernel_size,padding=1),
                 activation(),
                 nn.BatchNorm2d(16)
             ])
@@ -186,7 +187,7 @@ class PatchDescriminator(nn.Module):
             new_c = old_c * 2
             model.extend(
             [
-                nn.Conv2d(old_c,new_c,kernel_size,kernel_size,padding=1,stride=2),
+                nn.Conv2d(old_c,new_c,kernel_size,padding=1,stride=2),
                 nn.activation(),
                 nn.BatchNorm2d(new_c)
             ])
@@ -194,7 +195,12 @@ class PatchDescriminator(nn.Module):
         model.append(
             nn.Conv2d(old_c, 1, kernel_size,padding=1)
             )
+
+        model.append(
+            nn.Sigmoid()
+        )
         self.model = nn.Sequential(*model)
 
     def forward(self,x):
         return self.model(x)
+
